@@ -3,48 +3,671 @@ import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+
+const portfolioItems = [
+{
+title: "Golden Hour Portraits",
+category: "Portrait",
+image: "/blog-placeholder-1.jpg",
+},
+{
+title: "Urban Landscapes",
+category: "Architecture",
+image: "/blog-placeholder-2.jpg",
+},
+{
+title: "Nature & Wildlife",
+category: "Nature",
+image: "/blog-placeholder-3.jpg",
+},
+{
+title: "Wedding Moments",
+category: "Wedding",
+image: "/blog-placeholder-4.jpg",
+},
+{
+title: "Fashion Editorial",
+category: "Fashion",
+image: "/blog-placeholder-5.jpg",
+},
+{
+title: "Street Photography",
+category: "Street",
+image: "/blog-placeholder-about.jpg",
+},
+];
+
+const services = [
+{
+icon: "◈",
+title: "Portrait Sessions",
+description: "Professional portrait photography for individuals, couples, and families. Every session tells your unique story.",
+},
+{
+icon: "◆",
+title: "Wedding Photography",
+description: "Timeless wedding photography that captures the emotion, joy, and beauty of your most special day.",
+},
+{
+icon: "◇",
+title: "Commercial Photography",
+description: "High-quality commercial and product photography to elevate your brand and captivate your audience.",
+},
+];
 ---
 
 <!doctype html>
 <html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-	</head>
-	<body>
-		<Header />
-		<main>
-			<h1>🧑‍🚀 Hello, Astronaut!</h1>
-			<p>
-				Welcome to the official <a href="https://astro.build/">Astro</a> blog starter template. This
-				template serves as a lightweight, minimally-styled starting point for anyone looking to build
-				a personal website, blog, or portfolio with Astro.
-			</p>
-			<p>
-				This template comes with a few integrations already configured in your
-				<code>astro.config.mjs</code> file. You can customize your setup with
-				<a href="https://astro.build/integrations">Astro Integrations</a> to add tools like Tailwind,
-				React, or Vue to your project.
-			</p>
-			<p>Here are a few ideas on how to get started with the template:</p>
-			<ul>
-				<li>Edit this page in <code>src/pages/index.astro</code></li>
-				<li>Edit the site header items in <code>src/components/Header.astro</code></li>
-				<li>Add your name to the footer in <code>src/components/Footer.astro</code></li>
-				<li>Check out the included blog posts in <code>src/content/blog/</code></li>
-				<li>Customize the blog post page layout in <code>src/layouts/BlogPost.astro</code></li>
-			</ul>
-			<p>
-				Have fun! If you get stuck, remember to <a href="https://docs.astro.build/"
-					>read the docs
-				</a> or <a href="https://astro.build/chat">join us on Discord</a> to ask questions.
-			</p>
-			<p>
-				Looking for a blog template with a bit more personality? Check out <a
-					href="https://github.com/Charca/astro-blog-template"
-					>astro-blog-template
-				</a> by <a href="https://twitter.com/Charca">Maxi Ferreira</a>.
-			</p>
-		</main>
-		<Footer />
-	</body>
+<head>
+<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+</head>
+<body>
+<Header />
+<main>
+<!-- Hero Section -->
+<section class="hero">
+<div class="hero-overlay"></div>
+<div class="hero-content">
+<p class="hero-eyebrow">Professional Photography</p>
+<h1 class="hero-title">Foiga Photography</h1>
+<p class="hero-subtitle">Capturing the beauty of life's most precious moments with artistry and passion.</p>
+<div class="hero-actions">
+<a href="/#portfolio" class="btn">View Portfolio</a>
+<a href="/#contact" class="btn btn-outline">Get in Touch</a>
+</div>
+</div>
+<div class="hero-scroll-indicator">
+<span>Scroll</span>
+<div class="scroll-line"></div>
+</div>
+</section>
+
+<!-- Portfolio Section -->
+<section id="portfolio" class="section portfolio-section">
+<div class="container">
+<div class="section-header">
+<p class="section-eyebrow">Selected Works</p>
+<h2 class="section-title">Portfolio</h2>
+<p class="section-description">A curated collection of photography work spanning portraits, landscapes, weddings, and beyond.</p>
+</div>
+<div class="portfolio-grid">
+{portfolioItems.map((item, index) => (
+<div class:list={["portfolio-item", index === 0 ? "portfolio-item--featured" : ""]}>
+<div class="portfolio-image">
+<img src={item.image} alt={item.title} loading="lazy" />
+<div class="portfolio-overlay">
+<span class="portfolio-category">{item.category}</span>
+<h3 class="portfolio-title">{item.title}</h3>
+</div>
+</div>
+</div>
+))}
+</div>
+</div>
+</section>
+
+<!-- About Section -->
+<section id="about" class="section about-section">
+<div class="container">
+<div class="about-grid">
+<div class="about-image-wrap">
+<div class="about-image-frame">
+<img src="/blog-placeholder-about.jpg" alt="Foiga — Photographer" />
+</div>
+<div class="about-stat-card">
+<span class="stat-number">10+</span>
+<span class="stat-label">Years of Experience</span>
+</div>
+</div>
+<div class="about-content">
+<p class="section-eyebrow">About Me</p>
+<h2 class="section-title">The Photographer Behind the Lens</h2>
+<p>I'm Foiga, a professional photographer with a passion for capturing authentic moments and telling stories through imagery. My work spans across portrait, wedding, commercial, and fine art photography.</p>
+<p>Every photograph I take is a collaboration between the subject and the light—finding that perfect moment where emotion, composition, and light align to create something truly memorable.</p>
+<div class="about-stats">
+<div class="stat">
+<span class="stat-number">500+</span>
+<span class="stat-label">Projects Completed</span>
+</div>
+<div class="stat">
+<span class="stat-number">200+</span>
+<span class="stat-label">Happy Clients</span>
+</div>
+<div class="stat">
+<span class="stat-number">15</span>
+<span class="stat-label">Awards Won</span>
+</div>
+</div>
+<a href="/#contact" class="btn">Work with Me</a>
+</div>
+</div>
+</div>
+</section>
+
+<!-- Services Section -->
+<section class="section services-section">
+<div class="container">
+<div class="section-header">
+<p class="section-eyebrow">What I Offer</p>
+<h2 class="section-title">Services</h2>
+</div>
+<div class="services-grid">
+{services.map((service) => (
+<div class="service-card">
+<div class="service-icon">{service.icon}</div>
+<h3 class="service-title">{service.title}</h3>
+<p class="service-description">{service.description}</p>
+</div>
+))}
+</div>
+</div>
+</section>
+
+<!-- Contact Section -->
+<section id="contact" class="section contact-section">
+<div class="container">
+<div class="contact-inner">
+<div class="contact-content">
+<p class="section-eyebrow">Get in Touch</p>
+<h2 class="section-title">Let's Create Together</h2>
+<p>Ready to tell your story through photography? I'd love to hear about your vision and discuss how we can bring it to life.</p>
+<div class="contact-details">
+<div class="contact-item">
+<span class="contact-icon">✉</span>
+<span>hello@foigaphotography.com</span>
+</div>
+<div class="contact-item">
+<span class="contact-icon">◎</span>
+<span>Available worldwide</span>
+</div>
+</div>
+</div>
+<form class="contact-form">
+<div class="form-group">
+<label for="name">Name</label>
+<input type="text" id="name" name="name" placeholder="Your name" required />
+</div>
+<div class="form-group">
+<label for="email">Email</label>
+<input type="email" id="email" name="email" placeholder="your@email.com" required />
+</div>
+<div class="form-group">
+<label for="message">Message</label>
+<textarea id="message" name="message" rows="5" placeholder="Tell me about your project..." required></textarea>
+</div>
+<button type="submit" class="btn">Send Message</button>
+</form>
+</div>
+</div>
+</section>
+</main>
+<Footer />
+</body>
 </html>
+
+<style>
+/* Hero */
+.hero {
+position: relative;
+min-height: 100vh;
+display: flex;
+align-items: center;
+justify-content: center;
+background-image: url('/blog-placeholder-1.jpg');
+background-size: cover;
+background-position: center;
+overflow: hidden;
+}
+
+.hero-overlay {
+position: absolute;
+inset: 0;
+background: linear-gradient(
+to bottom,
+rgba(0, 0, 0, 0.5) 0%,
+rgba(0, 0, 0, 0.7) 50%,
+rgba(0, 0, 0, 0.85) 100%
+);
+}
+
+.hero-content {
+position: relative;
+z-index: 1;
+text-align: center;
+padding: 2rem;
+max-width: 800px;
+}
+
+.hero-eyebrow {
+font-size: 0.8rem;
+letter-spacing: 0.3em;
+text-transform: uppercase;
+color: #c9a84c;
+margin-bottom: 1.5rem;
+}
+
+.hero-title {
+font-size: clamp(2.5rem, 8vw, 6rem);
+font-weight: 700;
+color: #fff;
+letter-spacing: 0.05em;
+text-transform: uppercase;
+margin-bottom: 1.5rem;
+line-height: 1.1;
+}
+
+.hero-subtitle {
+font-size: 1.1rem;
+color: rgba(255, 255, 255, 0.8);
+max-width: 500px;
+margin: 0 auto 2.5rem;
+line-height: 1.8;
+}
+
+.hero-actions {
+display: flex;
+gap: 1rem;
+justify-content: center;
+flex-wrap: wrap;
+}
+
+.hero-scroll-indicator {
+position: absolute;
+bottom: 2.5rem;
+left: 50%;
+transform: translateX(-50%);
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 0.5rem;
+color: rgba(255, 255, 255, 0.5);
+font-size: 0.7rem;
+letter-spacing: 0.2em;
+text-transform: uppercase;
+z-index: 1;
+}
+
+.scroll-line {
+width: 1px;
+height: 40px;
+background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5), transparent);
+}
+
+/* Sections common */
+.section {
+padding: 6rem 0;
+}
+
+.container {
+max-width: 1200px;
+margin: 0 auto;
+padding: 0 2rem;
+}
+
+.section-header {
+text-align: center;
+max-width: 600px;
+margin: 0 auto 4rem;
+}
+
+.section-eyebrow {
+font-size: 0.75rem;
+letter-spacing: 0.3em;
+text-transform: uppercase;
+color: #c9a84c;
+margin-bottom: 1rem;
+}
+
+.section-title {
+font-size: clamp(1.75rem, 4vw, 2.5rem);
+font-weight: 700;
+color: #fff;
+letter-spacing: 0.02em;
+margin-bottom: 1.25rem;
+}
+
+.section-description {
+color: rgba(220, 220, 220, 0.7);
+line-height: 1.8;
+}
+
+/* Portfolio grid */
+.portfolio-section {
+background-color: #111;
+}
+
+.portfolio-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+grid-template-rows: auto;
+gap: 1rem;
+}
+
+.portfolio-item--featured {
+grid-column: span 2;
+grid-row: span 2;
+}
+
+.portfolio-image {
+position: relative;
+overflow: hidden;
+aspect-ratio: 1 / 1;
+background-color: #222;
+}
+
+.portfolio-item--featured .portfolio-image {
+aspect-ratio: unset;
+height: 100%;
+}
+
+.portfolio-image img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+transition: transform 0.5s ease;
+border-radius: 0;
+}
+
+.portfolio-item:hover .portfolio-image img {
+transform: scale(1.05);
+}
+
+.portfolio-overlay {
+position: absolute;
+inset: 0;
+background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, transparent 60%);
+display: flex;
+flex-direction: column;
+justify-content: flex-end;
+padding: 1.5rem;
+opacity: 0;
+transition: opacity 0.3s ease;
+}
+
+.portfolio-item:hover .portfolio-overlay {
+opacity: 1;
+}
+
+.portfolio-category {
+font-size: 0.7rem;
+letter-spacing: 0.2em;
+text-transform: uppercase;
+color: #c9a84c;
+margin-bottom: 0.25rem;
+}
+
+.portfolio-title {
+font-size: 1rem;
+color: #fff;
+margin: 0;
+font-weight: 600;
+}
+
+/* About section */
+.about-section {
+background-color: #0d0d0d;
+}
+
+.about-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 5rem;
+align-items: center;
+}
+
+.about-image-wrap {
+position: relative;
+}
+
+.about-image-frame {
+position: relative;
+}
+
+.about-image-frame::before {
+content: '';
+position: absolute;
+top: -1rem;
+left: -1rem;
+right: 1rem;
+bottom: 1rem;
+border: 1px solid rgba(201, 168, 76, 0.3);
+z-index: 0;
+}
+
+.about-image-frame img {
+position: relative;
+z-index: 1;
+width: 100%;
+height: 500px;
+object-fit: cover;
+border-radius: 0;
+}
+
+.about-stat-card {
+position: absolute;
+bottom: -1.5rem;
+right: -1.5rem;
+background-color: #c9a84c;
+color: #000;
+padding: 1.5rem;
+z-index: 2;
+text-align: center;
+min-width: 120px;
+}
+
+.about-content .section-title {
+margin-bottom: 1.5rem;
+}
+
+.about-content p {
+color: rgba(220, 220, 220, 0.75);
+line-height: 1.9;
+margin-bottom: 1.25rem;
+}
+
+.about-stats {
+display: flex;
+gap: 2.5rem;
+margin: 2.5rem 0;
+flex-wrap: wrap;
+}
+
+.stat {
+display: flex;
+flex-direction: column;
+}
+
+.stat-number {
+font-size: 2rem;
+font-weight: 700;
+color: #c9a84c;
+line-height: 1;
+}
+
+.stat-label {
+font-size: 0.75rem;
+text-transform: uppercase;
+letter-spacing: 0.1em;
+color: rgba(160, 160, 160, 0.7);
+margin-top: 0.25rem;
+}
+
+/* Services */
+.services-section {
+background-color: #111;
+}
+
+.services-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 2rem;
+}
+
+.service-card {
+background-color: #1a1a1a;
+padding: 2.5rem 2rem;
+border: 1px solid rgba(255, 255, 255, 0.06);
+transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.service-card:hover {
+border-color: rgba(201, 168, 76, 0.4);
+transform: translateY(-4px);
+}
+
+.service-icon {
+font-size: 1.75rem;
+color: #c9a84c;
+margin-bottom: 1.25rem;
+display: block;
+}
+
+.service-title {
+font-size: 1.1rem;
+color: #fff;
+font-weight: 600;
+margin-bottom: 0.75rem;
+letter-spacing: 0.02em;
+}
+
+.service-description {
+color: rgba(160, 160, 160, 0.8);
+font-size: 0.95rem;
+line-height: 1.75;
+margin: 0;
+}
+
+/* Contact */
+.contact-section {
+background-color: #0d0d0d;
+}
+
+.contact-inner {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 5rem;
+align-items: start;
+}
+
+.contact-content .section-title {
+margin-bottom: 1.25rem;
+}
+
+.contact-content p {
+color: rgba(220, 220, 220, 0.7);
+line-height: 1.9;
+margin-bottom: 2rem;
+}
+
+.contact-details {
+display: flex;
+flex-direction: column;
+gap: 0.75rem;
+}
+
+.contact-item {
+display: flex;
+align-items: center;
+gap: 0.75rem;
+color: rgba(220, 220, 220, 0.7);
+font-size: 0.95rem;
+}
+
+.contact-icon {
+color: #c9a84c;
+font-size: 1.1rem;
+}
+
+.contact-form {
+display: flex;
+flex-direction: column;
+gap: 1.25rem;
+}
+
+.form-group {
+display: flex;
+flex-direction: column;
+gap: 0.4rem;
+}
+
+.form-group label {
+font-size: 0.75rem;
+text-transform: uppercase;
+letter-spacing: 0.1em;
+color: rgba(220, 220, 220, 0.6);
+}
+
+.form-group input,
+.form-group textarea {
+background-color: #1a1a1a;
+border: 1px solid rgba(255, 255, 255, 0.1);
+color: #fff;
+padding: 0.875rem 1rem;
+font-family: inherit;
+font-size: 0.95rem;
+outline: none;
+transition: border-color 0.3s ease;
+resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+border-color: rgba(201, 168, 76, 0.6);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+color: rgba(160, 160, 160, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 960px) {
+.about-grid,
+.contact-inner {
+grid-template-columns: 1fr;
+gap: 3rem;
+}
+
+.about-stat-card {
+right: 0;
+}
+}
+
+@media (max-width: 720px) {
+.section {
+padding: 4rem 0;
+}
+
+.portfolio-grid {
+grid-template-columns: 1fr 1fr;
+}
+
+.portfolio-item--featured {
+grid-column: span 2;
+grid-row: span 1;
+}
+
+.services-grid {
+grid-template-columns: 1fr;
+}
+
+.about-stats {
+gap: 1.5rem;
+}
+
+.hero-actions {
+flex-direction: column;
+align-items: center;
+}
+}
+
+@media (max-width: 480px) {
+.portfolio-grid {
+grid-template-columns: 1fr;
+}
+
+.portfolio-item--featured {
+grid-column: span 1;
+}
+}
+</style>
