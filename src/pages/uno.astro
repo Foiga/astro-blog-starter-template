@@ -1,0 +1,390 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE } from '../consts';
+---
+
+<!doctype html>
+<html lang="ja">
+	<head>
+		<BaseHead title={`UNO カードゲーム | ${SITE_TITLE}`} description="ブラウザとスマホでそのまま遊べる UNO カードゲーム。3人のCPUと対戦。" />
+	</head>
+	<body>
+		<Header />
+		<main class="uno-main">
+			<h1 class="uno-heading">UNO</h1>
+			<p class="uno-sub">出せるカードをタップして出す、山札をタップして引く。残り1枚になったら UNO ボタンを忘れずに！</p>
+			<div id="uno-app"></div>
+		</main>
+		<Footer />
+
+		<script>
+			import { mountUno } from '../scripts/uno/ui';
+			mountUno();
+		</script>
+
+		<style is:global>
+			/* ===== UNO 遊戲樣式（JS 產生的元素，需用 global） ===== */
+			.uno-main {
+				max-width: 1000px;
+				margin: 0 auto;
+				padding: 1.5rem 1rem 3rem;
+			}
+			.uno-heading {
+				text-align: center;
+				font-size: 2.5rem;
+				letter-spacing: 0.1em;
+				margin: 0.5rem 0 0.25rem;
+				color: #c9a84c;
+			}
+			.uno-sub {
+				text-align: center;
+				color: rgba(220, 220, 220, 0.7);
+				font-size: 0.9rem;
+				margin: 0 0 1.25rem;
+			}
+
+			.uno-app {
+				position: relative;
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
+				background: radial-gradient(circle at 50% 30%, #1c1c1c, #0d0d0d);
+				border: 1px solid rgba(201, 168, 76, 0.25);
+				border-radius: 16px;
+				padding: 1rem;
+				min-height: 70vh;
+				overflow: hidden;
+			}
+
+			/* 對手列 */
+			.uno-opponents {
+				display: flex;
+				justify-content: space-around;
+				gap: 0.5rem;
+				flex-wrap: wrap;
+			}
+			.uno-opp {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 0.25rem;
+				padding: 0.5rem 0.75rem;
+				border-radius: 12px;
+				border: 1px solid transparent;
+				transition: all 0.3s ease;
+				min-width: 90px;
+			}
+			.uno-opp.uno-active {
+				border-color: #c9a84c;
+				box-shadow: 0 0 16px rgba(201, 168, 76, 0.45);
+				background: rgba(201, 168, 76, 0.08);
+			}
+			.uno-opp-name {
+				font-size: 0.85rem;
+				color: #fff;
+				display: flex;
+				align-items: center;
+				gap: 0.35rem;
+			}
+			.uno-opp-uno {
+				font-size: 0.65rem;
+				font-weight: 700;
+				color: #0d0d0d;
+				background: #c9a84c;
+				border-radius: 6px;
+				padding: 0 0.3rem;
+			}
+			.uno-opp-cards {
+				display: flex;
+			}
+			.uno-card-mini {
+				width: 14px;
+				height: 20px;
+				margin-left: -8px;
+				border-radius: 3px;
+				background: linear-gradient(135deg, #222, #000);
+				border: 1px solid #c9a84c;
+			}
+			.uno-opp-cards .uno-card-mini:first-child {
+				margin-left: 0;
+			}
+			.uno-opp-count {
+				font-size: 0.7rem;
+				color: rgba(220, 220, 220, 0.6);
+			}
+
+			/* 中央區 */
+			.uno-center {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				gap: 1.25rem;
+				flex: 1;
+				min-height: 160px;
+			}
+			.uno-pile-col {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 0.4rem;
+			}
+			.uno-pile-label {
+				font-size: 0.75rem;
+				color: rgba(220, 220, 220, 0.7);
+			}
+			.uno-draw-pile {
+				cursor: pointer;
+				transition: transform 0.15s ease;
+			}
+			.uno-draw-pile:hover {
+				transform: translateY(-4px);
+			}
+			.uno-color-dot {
+				width: 36px;
+				height: 36px;
+				border-radius: 50%;
+				border: 3px solid #fff;
+				box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+			}
+			.uno-pending {
+				font-size: 0.8rem;
+				font-weight: 700;
+				color: #fff;
+				background: #D72600;
+				border-radius: 8px;
+				padding: 0.15rem 0.5rem;
+			}
+
+			/* 卡牌 */
+			.uno-card {
+				position: relative;
+				width: 70px;
+				height: 100px;
+				border-radius: 10px;
+				border: 3px solid #fff;
+				box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+				flex-shrink: 0;
+				user-select: none;
+			}
+			.uno-card-oval {
+				position: absolute;
+				inset: 12%;
+				background: rgba(255, 255, 255, 0.92);
+				border-radius: 50% / 42%;
+				transform: rotate(-32deg);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+			.uno-card-center {
+				transform: rotate(32deg);
+				font-weight: 900;
+				font-size: 1.7rem;
+				color: #1a1a1a;
+				text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.1);
+			}
+			.uno-card-wild .uno-card-oval {
+				background: rgba(20, 20, 20, 0.85);
+			}
+			.uno-card-wild .uno-card-center {
+				color: #fff;
+				font-size: 1.4rem;
+			}
+			.uno-card-corner {
+				position: absolute;
+				font-weight: 800;
+				font-size: 0.7rem;
+				color: #fff;
+				text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+			}
+			.uno-tl {
+				top: 4px;
+				left: 6px;
+			}
+			.uno-br {
+				bottom: 4px;
+				right: 6px;
+				transform: rotate(180deg);
+			}
+			.uno-card-back {
+				background: linear-gradient(135deg, #2a2a2a, #000);
+				border-color: #c9a84c;
+			}
+			.uno-card-back .uno-card-oval {
+				background: #D72600;
+				transform: rotate(-32deg);
+			}
+			.uno-card-back .uno-card-center {
+				color: #fff;
+				font-size: 1rem;
+				letter-spacing: 0.05em;
+				font-style: italic;
+			}
+			.uno-card-chosen {
+				position: absolute;
+				top: -6px;
+				right: -6px;
+				width: 18px;
+				height: 18px;
+				border-radius: 50%;
+				border: 2px solid #fff;
+			}
+
+			/* 玩家手牌 */
+			.uno-hand-wrap {
+				overflow-x: auto;
+				overflow-y: visible;
+				padding: 1.25rem 0.25rem 0.5rem;
+				-webkit-overflow-scrolling: touch;
+			}
+			.uno-hand {
+				display: flex;
+				justify-content: center;
+				gap: 0;
+				min-width: min-content;
+				padding: 0 0.5rem;
+			}
+			.uno-hand-card {
+				margin-left: -22px;
+				transition: transform 0.15s ease, margin 0.15s ease;
+				cursor: default;
+			}
+			.uno-hand-card:first-child {
+				margin-left: 0;
+			}
+			.uno-hand-card.uno-playable {
+				cursor: pointer;
+			}
+			.uno-hand-card.uno-playable:hover {
+				transform: translateY(-16px);
+			}
+			.uno-hand-card.uno-disabled {
+				filter: brightness(0.5) saturate(0.6);
+			}
+			@media (hover: none) {
+				.uno-hand-card {
+					margin-left: -14px;
+				}
+				.uno-hand-card.uno-playable {
+					transform: translateY(-10px);
+				}
+			}
+
+			/* 控制列 */
+			.uno-status {
+				text-align: center;
+				min-height: 1.4rem;
+				color: #c9a84c;
+				font-size: 0.9rem;
+			}
+			.uno-controls {
+				display: flex;
+				justify-content: center;
+				gap: 1rem;
+			}
+			.uno-btn {
+				min-height: 44px;
+				padding: 0 1.5rem;
+				border-radius: 999px;
+				border: 2px solid #c9a84c;
+				background: #c9a84c;
+				color: #0d0d0d;
+				font-weight: 700;
+				font-size: 1rem;
+				letter-spacing: 0.05em;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.uno-btn:hover:not(:disabled) {
+				filter: brightness(1.1);
+			}
+			.uno-btn:disabled {
+				opacity: 0.35;
+				cursor: not-allowed;
+			}
+			.uno-uno-btn {
+				background: #D72600;
+				border-color: #D72600;
+				color: #fff;
+			}
+			.uno-new-btn {
+				background: transparent;
+				color: #c9a84c;
+			}
+
+			/* 彈窗 */
+			.uno-overlay {
+				position: absolute;
+				inset: 0;
+				background: rgba(0, 0, 0, 0.75);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				z-index: 20;
+				border-radius: 16px;
+			}
+			.uno-modal {
+				background: #1a1a1a;
+				border: 1px solid rgba(201, 168, 76, 0.4);
+				border-radius: 16px;
+				padding: 1.5rem 2rem;
+				text-align: center;
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
+				align-items: center;
+				max-width: 90%;
+			}
+			.uno-modal-title {
+				font-size: 1.4rem;
+				font-weight: 700;
+				color: #fff;
+			}
+			.uno-modal-row {
+				display: flex;
+				gap: 1rem;
+			}
+			.uno-color-grid {
+				display: grid;
+				grid-template-columns: repeat(2, 1fr);
+				gap: 0.75rem;
+			}
+			.uno-color-choice {
+				width: 64px;
+				height: 64px;
+				border-radius: 12px;
+				border: 3px solid #fff;
+				cursor: pointer;
+				transition: transform 0.15s ease;
+			}
+			.uno-color-choice:hover {
+				transform: scale(1.08);
+			}
+
+			@media (max-width: 600px) {
+				.uno-heading {
+					font-size: 2rem;
+				}
+				.uno-card {
+					width: 58px;
+					height: 84px;
+				}
+				.uno-card-center {
+					font-size: 1.4rem;
+				}
+				.uno-center {
+					gap: 0.75rem;
+				}
+				.uno-opp {
+					min-width: 70px;
+					padding: 0.4rem;
+				}
+				.uno-app {
+					padding: 0.75rem;
+				}
+			}
+		</style>
+	</body>
+</html>
