@@ -22,20 +22,7 @@
 	--transition: all 0.3s ease;
 }
 
-@font-face {
-	font-family: "Atkinson";
-	src: url("/fonts/atkinson-regular.woff") format("woff");
-	font-weight: 400;
-	font-style: normal;
-	font-display: swap;
-}
-@font-face {
-	font-family: "Atkinson";
-	src: url("/fonts/atkinson-bold.woff") format("woff");
-	font-weight: 700;
-	font-style: normal;
-	font-display: swap;
-}
+/* @font-face は base（サブパス）対応のため BaseHead.astro 内のインライン<style>で定義 */
 
 *, *::before, *::after {
 	box-sizing: border-box;

@@ -1,11 +1,11 @@
 ---
 import HeaderLink from './HeaderLink.astro';
-import { SITE_TITLE } from '../consts';
+import { SITE_TITLE, link } from '../consts';
 ---
 
 <header>
 	<nav>
-		<a href="/" class="logo">
+		<a href={link('/')} class="logo">
 			<span class="logo-icon">✦</span>
 			<span class="logo-text">{SITE_TITLE}</span>
 		</a>
@@ -16,11 +16,11 @@ import { SITE_TITLE } from '../consts';
 			<span></span>
 		</label>
 		<div class="nav-links">
-			<HeaderLink href="/">Home</HeaderLink>
-			<HeaderLink href="/#portfolio">Portfolio</HeaderLink>
-			<HeaderLink href="/#about">About</HeaderLink>
-			<HeaderLink href="/#contact">Contact</HeaderLink>
-			<HeaderLink href="/uno">UNO</HeaderLink>
+			<HeaderLink href={link('/')}>Home</HeaderLink>
+			<HeaderLink href={link('/#portfolio')}>Portfolio</HeaderLink>
+			<HeaderLink href={link('/#about')}>About</HeaderLink>
+			<HeaderLink href={link('/#contact')}>Contact</HeaderLink>
+			<HeaderLink href={link('/uno')}>UNO</HeaderLink>
 		</div>
 	</nav>
 </header>
