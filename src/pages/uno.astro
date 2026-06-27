@@ -137,6 +137,49 @@ import { SITE_TITLE } from '../consts';
 				box-shadow: 0 12px 26px rgba(0, 0, 0, 0.6);
 			}
 
+			.uno-hand-card.uno-selected {
+				transform: translateY(-20px);
+				outline: 3px solid #ffe14d;
+				outline-offset: 2px;
+			}
+			.uno-hand-card.uno-addable {
+				cursor: pointer;
+				box-shadow: 0 0 0 3px rgba(255, 225, 77, 0.8), 0 4px 10px rgba(0, 0, 0, 0.5);
+				animation: uno-pulse 1s ease-in-out infinite;
+			}
+			@keyframes uno-pulse {
+				0%, 100% { filter: brightness(1); }
+				50% { filter: brightness(1.28); }
+			}
+			.uno-select-bar {
+				position: absolute;
+				left: 50%;
+				bottom: 88px;
+				transform: translateX(-50%);
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: center;
+				align-items: center;
+				gap: 0.5rem;
+				max-width: 94%;
+				padding: 0.45rem 0.7rem;
+				background: rgba(13, 13, 13, 0.94);
+				border: 1px solid rgba(201, 168, 76, 0.45);
+				border-radius: 18px;
+				z-index: 30;
+			}
+			.uno-select-hint {
+				font-size: 0.72rem;
+				color: rgba(220, 220, 220, 0.78);
+				flex-basis: 100%;
+				text-align: center;
+			}
+			.uno-select-bar .uno-btn {
+				min-height: 40px;
+				padding: 0 1.1rem;
+				font-size: 0.9rem;
+			}
+
 			/* 對手列 */
 			.uno-opponents {
 				display: flex;

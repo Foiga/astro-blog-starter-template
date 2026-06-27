@@ -9,6 +9,9 @@ export const LANG_LABEL: Record<Lang, string> = { zh: '中', en: 'EN', ja: '日'
 export type Difficulty = 'easy' | 'medium' | 'hard';
 export const DIFFICULTIES: Difficulty[] = ['easy', 'medium', 'hard'];
 
+export type RulesMode = 'official' | 'house';
+export const RULES_MODES: RulesMode[] = ['official', 'house'];
+
 type Dict = Record<string, string>;
 
 const STRINGS: Record<Lang, Dict> = {
@@ -38,6 +41,13 @@ const STRINGS: Record<Lang, Dict> = {
     easy: '簡單',
     medium: '中等',
     hard: '困難',
+    rules_label: '規則',
+    official: '官方',
+    house: '家庭',
+    play_n: '出牌 ({n})',
+    cancel: '取消',
+    multi_hint: '可加選相同數字的牌一起出',
+    log_played_multi: '{name} 一次出了 {n} 張 {card}',
     color_red: '紅', color_yellow: '黃', color_green: '綠', color_blue: '藍', color_wild: '萬用',
     kind_skip: '跳過', kind_reverse: '迴轉', kind_draw2: '+2', kind_wild: '變色', kind_wild4: '變色+4',
     log_start_skip: '起始為跳過牌，{name} 被跳過',
@@ -80,6 +90,13 @@ const STRINGS: Record<Lang, Dict> = {
     easy: 'Easy',
     medium: 'Medium',
     hard: 'Hard',
+    rules_label: 'Rules',
+    official: 'Official',
+    house: 'House',
+    play_n: 'Play ({n})',
+    cancel: 'Cancel',
+    multi_hint: 'Add same-number cards to play together',
+    log_played_multi: '{name} played {n}× {card}',
     color_red: 'Red', color_yellow: 'Yellow', color_green: 'Green', color_blue: 'Blue', color_wild: 'Wild',
     kind_skip: 'Skip', kind_reverse: 'Reverse', kind_draw2: '+2', kind_wild: 'Wild', kind_wild4: 'Wild+4',
     log_start_skip: 'First card is Skip. {name} is skipped',
@@ -122,6 +139,13 @@ const STRINGS: Record<Lang, Dict> = {
     easy: 'かんたん',
     medium: 'ふつう',
     hard: 'むずかしい',
+    rules_label: 'ルール',
+    official: '公式',
+    house: 'ハウス',
+    play_n: '出す ({n})',
+    cancel: 'キャンセル',
+    multi_hint: '同じ数字のカードを追加で出せます',
+    log_played_multi: '{name} は {card} を {n} 枚出した',
     color_red: '赤', color_yellow: '黄', color_green: '緑', color_blue: '青', color_wild: 'ワイルド',
     kind_skip: 'スキップ', kind_reverse: 'リバース', kind_draw2: 'ドロー2', kind_wild: 'ワイルド', kind_wild4: 'ワイルドドロー4',
     log_start_skip: '最初のカードはスキップ。{name} はスキップされました',

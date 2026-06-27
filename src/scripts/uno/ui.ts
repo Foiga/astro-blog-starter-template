@@ -11,6 +11,7 @@ import {
   canPlay,
   playableCards,
   playCard,
+  playCards,
   drawForCurrent,
   passAfterDraw,
   declareUno,
@@ -21,9 +22,11 @@ import { decideAi, aiChooseColorForDrawn } from './ai';
 import {
   type Lang,
   type Difficulty,
+  type RulesMode,
   LANGS,
   LANG_LABEL,
   DIFFICULTIES,
+  RULES_MODES,
   t,
   cardLabel,
   colorName,
@@ -61,12 +64,16 @@ export class UnoUI {
   private unoWindowOpen = false;
   private lang: Lang;
   private difficulty: Difficulty;
+  private rulesMode: RulesMode;
+  // 家庭規則：複数出し選択中の状態（anchor=最初の合法カード、extra=追加した同数字カード）
+  private selecting: { value: number; anchorId: string; extra: Set<string> } | null = null;
 
   constructor(root: HTMLElement) {
     this.lang = (localStorage.getItem('uno-lang') as Lang) || detectLang();
     this.difficulty = (localStorage.getItem('uno-difficulty') as Difficulty) || 'medium';
+    this.rulesMode = (localStorage.getItem('uno-rules') as RulesMode) || 'house';
     this.buildScaffold(root);
-    this.state = createGame();
+    this.state = createGame({ stacking: this.rulesMode === 'house' });
     this.applyTexts();
     this.render();
     this.maybeRunAi();
@@ -129,6 +136,11 @@ export class UnoUI {
         active: d === this.difficulty,
         on: () => this.setDifficulty(d),
       }))),
+      this.segGroup(t(this.lang, 'rules_label'), RULES_MODES.map((r) => ({
+        label: t(this.lang, r),
+        active: r === this.rulesMode,
+        on: () => this.setRules(r),
+      }))),
     );
   }
 
@@ -160,11 +172,20 @@ export class UnoUI {
     localStorage.setItem('uno-difficulty', d);
     this.applyTexts();
   }
+  private setRules(r: RulesMode) {
+    this.rulesMode = r;
+    localStorage.setItem('uno-rules', r);
+    this.state.stacking = r === 'house'; // 重ね出し可否を即時反映
+    this.selecting = null; // 選択中ならキャンセル
+    this.applyTexts();
+    this.render();
+  }
 
   private newGame() {
-    this.state = createGame();
+    this.state = createGame({ stacking: this.rulesMode === 'house' });
     this.busy = false;
     this.unoWindowOpen = false;
+    this.selecting = null;
     this.clearOverlay();
     this.dealSound();
     this.render();
@@ -181,6 +202,7 @@ export class UnoUI {
     this.renderCenter();
     this.renderHand();
     this.renderStatus();
+    this.renderSelectBar();
     this.refs.unoBtn.disabled = !(this.state.players[0].hand.length === 1 && !this.state.players[0].saidUno);
   }
 
@@ -247,15 +269,61 @@ export class UnoUI {
     for (const card of player.hand) {
       const elc = this.cardFace(card, card.color === 'wild' ? null : (card.color as Color));
       elc.classList.add('uno-hand-card');
-      const playable = isMyTurn && canPlay(this.state, card);
-      if (playable) {
-        elc.classList.add('uno-playable');
-        elc.addEventListener('click', () => this.onPlayCard(card, elc));
-      } else if (isMyTurn) {
-        elc.classList.add('uno-disabled');
+      elc.dataset.cardId = card.id;
+
+      if (this.selecting) {
+        // 複数出し選択中
+        const sel = this.selecting;
+        const isAnchor = card.id === sel.anchorId;
+        const isSameNum = card.kind === 'number' && card.value === sel.value;
+        if (isAnchor || sel.extra.has(card.id)) {
+          elc.classList.add('uno-selected');
+          if (!isAnchor) elc.addEventListener('click', () => this.toggleExtra(card.id));
+        } else if (isSameNum) {
+          elc.classList.add('uno-addable');
+          elc.addEventListener('click', () => this.toggleExtra(card.id));
+        } else {
+          elc.classList.add('uno-disabled');
+        }
+      } else {
+        const playable = isMyTurn && canPlay(this.state, card);
+        if (playable) {
+          elc.classList.add('uno-playable');
+          elc.addEventListener('click', () => this.onPlayCard(card, elc));
+        } else if (isMyTurn) {
+          elc.classList.add('uno-disabled');
+        }
       }
       c.appendChild(elc);
     }
+  }
+
+  private toggleExtra(id: string) {
+    if (!this.selecting) return;
+    if (this.selecting.extra.has(id)) this.selecting.extra.delete(id);
+    else this.selecting.extra.add(id);
+    this.render();
+  }
+
+  // 複数出しの確認バー（家庭規則・選択中のみ表示）
+  private renderSelectBar() {
+    this.refs.app.querySelector('.uno-select-bar')?.remove();
+    if (!this.selecting) return;
+    const n = 1 + this.selecting.extra.size;
+    const bar = el('div', 'uno-select-bar');
+    const hint = el('span', 'uno-select-hint');
+    hint.textContent = t(this.lang, 'multi_hint');
+    const play = el('button', 'uno-btn') as HTMLButtonElement;
+    play.textContent = t(this.lang, 'play_n', { n });
+    play.addEventListener('click', () => this.playSelected());
+    const cancel = el('button', 'uno-btn uno-new-btn') as HTMLButtonElement;
+    cancel.textContent = t(this.lang, 'cancel');
+    cancel.addEventListener('click', () => {
+      this.selecting = null;
+      this.render();
+    });
+    bar.append(hint, play, cancel);
+    this.refs.app.appendChild(bar);
   }
 
   private logText(e: LogEvent): string {
@@ -334,10 +402,51 @@ export class UnoUI {
   // ---- 人類互動 ----
   private onPlayCard(card: Card, sourceEl?: HTMLElement) {
     if (this.busy || this.state.currentPlayer !== 0 || this.state.status !== 'playing') return;
+    if (this.selecting) return;
     if (!canPlay(this.state, card)) return;
+
+    // 家庭規則：同じ数字の数字カードが他にもあれば複数出しの選択へ
+    if (this.rulesMode === 'house' && card.kind === 'number') {
+      const sameCount = this.state.players[0].hand.filter(
+        (h) => h.kind === 'number' && h.value === card.value,
+      ).length;
+      if (sameCount > 1) {
+        this.selecting = { value: card.value!, anchorId: card.id, extra: new Set() };
+        this.render();
+        return;
+      }
+    }
+
     const from = sourceEl ? sourceEl.getBoundingClientRect() : undefined;
     if (card.color === 'wild') this.openColorPicker((color) => this.commitPlay(0, card, color, from));
     else this.commitPlay(0, card, undefined, from);
+  }
+
+  private playSelected() {
+    if (!this.selecting) return;
+    const ids = [this.selecting.anchorId, ...this.selecting.extra];
+    const hand = this.state.players[0].hand;
+    const flights = ids.map((id) => {
+      const e = this.refs.hand.querySelector(`[data-card-id="${id}"]`) as HTMLElement | null;
+      return { rect: e?.getBoundingClientRect(), card: hand.find((c) => c.id === id) };
+    });
+    const res = playCards(this.state, 0, ids);
+    this.selecting = null;
+    if (!res.ok) {
+      this.render();
+      return;
+    }
+    playPlace();
+    if (this.state.players[0].hand.length === 1) this.openUnoWindow();
+    this.render();
+    for (const f of flights) {
+      if (f.rect && f.card) this.flyCard(f.rect, f.card, f.card.color as Color);
+    }
+    if (this.state.status === 'roundOver') {
+      this.showWinner();
+      return;
+    }
+    this.maybeRunAi();
   }
 
   private commitPlay(playerIndex: number, card: Card, color?: Color, from?: DOMRect) {
