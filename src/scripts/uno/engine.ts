@@ -96,7 +96,7 @@ export interface NewGameOptions {
 }
 
 export function createGame(opts: NewGameOptions = {}): GameState {
-  const names = opts.playerNames ?? ['你', '電腦 1', '電腦 2', '電腦 3'];
+  const names = opts.playerNames ?? ['あなた', 'CPU 1', 'CPU 2', 'CPU 3'];
   const handSize = opts.startingHand ?? 7;
 
   const drawPile = shuffle(buildDeck());
@@ -144,23 +144,23 @@ export function createGame(opts: NewGameOptions = {}): GameState {
 function applyStartCardEffect(state: GameState, first: Card) {
   switch (first.kind) {
     case 'skip':
-      log(state, `起始為跳過牌，${state.players[0].name} 被跳過`);
+      log(state, `最初のカードはスキップ。${state.players[0].name} はスキップされました`);
       advance(state, 1);
       break;
     case 'reverse':
       // 4 人逆轉：方向反轉，由最後一位玩家開始
       state.direction = -1;
-      log(state, '起始為迴轉牌，方向反轉');
+      log(state, '最初のカードはリバース。順番が逆になりました');
       advance(state, 1);
       break;
     case 'draw2':
       state.pendingDraw = 2;
       state.pendingDrawKind = 'draw2';
-      log(state, `起始為 +2，${state.players[0].name} 需面對 +2`);
+      log(state, `最初のカードはドロー2。${state.players[0].name} はドロー2を受けます`);
       break;
     case 'wild':
       // activeColor 已隨機指定
-      log(state, `起始為變色牌，顏色為 ${state.activeColor}`);
+      log(state, `最初のカードはワイルド。色は ${state.activeColor}`);
       break;
   }
 }
@@ -239,13 +239,13 @@ export function playCard(state: GameState, playerIndex: number, cardId: string, 
     state.activeColor = card.color as Color;
   }
 
-  log(state, `${player.name} 出了 ${cardLabel(card, chosenColor)}`);
+  log(state, `${player.name} は ${cardLabel(card, chosenColor)} を出しました`);
 
   // 勝負：手牌歸零
   if (player.hand.length === 0) {
     state.status = 'roundOver';
     state.winner = playerIndex;
-    log(state, `🎉 ${player.name} 獲勝！`);
+    log(state, `🎉 ${player.name} の勝ち！`);
     return { ok: true };
   }
 
@@ -258,12 +258,12 @@ function applyCardEffect(state: GameState, card: Card) {
   switch (card.kind) {
     case 'skip':
       advance(state, 1); // 跳過下家：先到下家
-      log(state, `${current(state).name} 被跳過`);
+      log(state, `${current(state).name} はスキップされました`);
       advance(state, 1);
       break;
     case 'reverse':
       state.direction = (state.direction * -1) as Direction;
-      log(state, '方向反轉');
+      log(state, '順番が逆になりました');
       advance(state, 1);
       break;
     case 'draw2':
@@ -296,7 +296,7 @@ export function drawForCurrent(state: GameState): DrawResult {
   if (state.pendingDraw > 0) {
     // 認抽：抽完累積張數，跳過此玩家
     const drawn = drawCards(state, player, state.pendingDraw);
-    log(state, `${player.name} 抽了 ${drawn.length} 張（疊牌結算）`);
+    log(state, `${player.name} は ${drawn.length} 枚引きました（重ね出し精算）`);
     state.pendingDraw = 0;
     state.pendingDrawKind = null;
     advance(state, 1);
@@ -308,7 +308,7 @@ export function drawForCurrent(state: GameState): DrawResult {
   const card = drawn[0] ?? null;
   player.saidUno = false;
   const playable = card && isPlayable(card, state.activeColor, topCard(state)) ? card : null;
-  log(state, `${player.name} 抽了 1 張`);
+  log(state, `${player.name} は1枚引きました`);
   return { drawn, forced: false, playable };
 }
 
@@ -324,7 +324,7 @@ export function declareUno(state: GameState, playerIndex: number) {
   const p = state.players[playerIndex];
   if (p.hand.length === 1) {
     p.saidUno = true;
-    log(state, `${p.name} 喊了 UNO！`);
+    log(state, `${p.name} がUNO！とコール`);
   }
 }
 
@@ -333,7 +333,7 @@ export function catchUno(state: GameState, targetIndex: number): boolean {
   const p = state.players[targetIndex];
   if (p.hand.length === 1 && !p.saidUno) {
     drawCards(state, p, 2);
-    log(state, `${p.name} 忘記喊 UNO，罰抽 2 張`);
+    log(state, `${p.name} はUNOコールを忘れ、ペナルティで2枚引きました`);
     return true;
   }
   return false;
@@ -379,7 +379,7 @@ function reshuffleDiscard(state: GameState) {
     if (c.kind === 'wild' || c.kind === 'wild4') c.color = 'wild';
   }
   state.drawPile = shuffle(recycled);
-  log(state, '抽牌堆用盡，棄牌堆重新洗牌');
+  log(state, '山札がなくなったので捨て札をシャッフルしました');
 }
 
 function log(state: GameState, msg: string) {
@@ -391,24 +391,24 @@ function log(state: GameState, msg: string) {
 
 const KIND_LABEL: Record<CardKind, string> = {
   number: '',
-  skip: '跳過',
-  reverse: '迴轉',
-  draw2: '+2',
-  wild: '變色',
-  wild4: '變色+4',
+  skip: 'スキップ',
+  reverse: 'リバース',
+  draw2: 'ドロー2',
+  wild: 'ワイルド',
+  wild4: 'ワイルドドロー4',
 };
 
 export function cardLabel(card: Card, chosenColor?: Color): string {
   const colorName: Record<WildColor, string> = {
-    red: '紅',
-    yellow: '黃',
-    green: '綠',
-    blue: '藍',
-    wild: '萬用',
+    red: '赤',
+    yellow: '黄',
+    green: '緑',
+    blue: '青',
+    wild: 'ワイルド',
   };
   if (card.kind === 'number') return `${colorName[card.color]}${card.value}`;
   if (card.color === 'wild') {
-    return chosenColor ? `${KIND_LABEL[card.kind]}(選${colorName[chosenColor]})` : KIND_LABEL[card.kind];
+    return chosenColor ? `${KIND_LABEL[card.kind]}(${colorName[chosenColor]}指定)` : KIND_LABEL[card.kind];
   }
   return `${colorName[card.color]}${KIND_LABEL[card.kind]}`;
 }

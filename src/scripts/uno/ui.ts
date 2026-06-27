@@ -77,7 +77,7 @@ export class UnoUI {
     unoBtn.textContent = 'UNO!';
     unoBtn.type = 'button';
     const newGameBtn = el('button', 'uno-btn uno-new-btn') as HTMLButtonElement;
-    newGameBtn.textContent = '新局';
+    newGameBtn.textContent = '新しいゲーム';
     newGameBtn.type = 'button';
     controls.append(unoBtn, newGameBtn);
 
@@ -123,7 +123,7 @@ export class UnoUI {
         cards.appendChild(this.cardBackMini());
       }
       const count = el('div', 'uno-opp-count');
-      count.textContent = `${p.hand.length} 張`;
+      count.textContent = `${p.hand.length} 枚`;
       if (p.hand.length === 1) {
         const u = el('span', 'uno-opp-uno');
         u.textContent = p.saidUno ? 'UNO' : '?';
@@ -142,7 +142,7 @@ export class UnoUI {
     const drawPile = el('div', 'uno-pile uno-draw-pile');
     drawPile.appendChild(this.cardBack());
     const drawLabel = el('div', 'uno-pile-label');
-    drawLabel.textContent = `抽牌堆 ${this.state.drawPile.length}`;
+    drawLabel.textContent = `山札 ${this.state.drawPile.length}`;
     const drawCol = el('div', 'uno-pile-col');
     drawCol.append(drawPile, drawLabel);
     drawPile.addEventListener('click', () => this.onDrawClick());
@@ -151,7 +151,7 @@ export class UnoUI {
     const top = topCard(this.state);
     const discard = el('div', 'uno-pile uno-discard-pile');
     discard.appendChild(this.cardFace(top, this.state.activeColor));
-    const dirArrow = this.state.direction === 1 ? '↻ 順時針' : '↺ 逆時針';
+    const dirArrow = this.state.direction === 1 ? '↻ 時計回り' : '↺ 反時計回り';
     const discardLabel = el('div', 'uno-pile-label');
     discardLabel.textContent = dirArrow;
     const discardCol = el('div', 'uno-pile-col');
@@ -161,7 +161,7 @@ export class UnoUI {
     const colorDot = el('div', 'uno-color-dot');
     colorDot.style.background = COLOR_HEX[this.state.activeColor];
     const pending = this.state.pendingDraw > 0 ? el('div', 'uno-pending') : null;
-    if (pending) pending.textContent = `疊牌 +${this.state.pendingDraw}`;
+    if (pending) pending.textContent = `重ね出し +${this.state.pendingDraw}`;
 
     const midCol = el('div', 'uno-pile-col');
     midCol.append(colorDot);
@@ -197,7 +197,7 @@ export class UnoUI {
       return;
     }
     const turnName = this.state.players[this.state.currentPlayer].name;
-    s.textContent = this.state.currentPlayer === 0 && !this.busy ? `輪到你出牌` : `${last}`;
+    s.textContent = this.state.currentPlayer === 0 && !this.busy ? `あなたの番です` : `${last}`;
   }
 
   // ---- 卡牌 DOM ----
@@ -297,7 +297,7 @@ export class UnoUI {
     if (res.playable) {
       this.render();
       const drawn = res.playable;
-      this.flashStatus(`抽到 ${this.cardGlyph(drawn)}，可出`);
+      this.flashStatus(`引いた ${this.cardGlyph(drawn)} は出せます`);
       this.confirmPlayDrawn(drawn);
     } else {
       passAfterDraw(this.state);
@@ -310,12 +310,12 @@ export class UnoUI {
     const bar = el('div', 'uno-overlay uno-confirm');
     const box = el('div', 'uno-modal');
     const msg = el('div', 'uno-modal-title');
-    msg.textContent = '抽到一張可出的牌，要打出嗎？';
+    msg.textContent = '出せるカードを引きました。出しますか？';
     const row = el('div', 'uno-modal-row');
     const yes = el('button', 'uno-btn') as HTMLButtonElement;
-    yes.textContent = '打出';
+    yes.textContent = '出す';
     const no = el('button', 'uno-btn uno-new-btn') as HTMLButtonElement;
-    no.textContent = '保留';
+    no.textContent = '手札に残す';
     row.append(yes, no);
     box.append(msg, row);
     bar.appendChild(box);
@@ -435,7 +435,7 @@ export class UnoUI {
     const bar = el('div', 'uno-overlay');
     const box = el('div', 'uno-modal');
     const title = el('div', 'uno-modal-title');
-    title.textContent = '選擇顏色';
+    title.textContent = '色を選んでください';
     const grid = el('div', 'uno-color-grid');
     (['red', 'yellow', 'green', 'blue'] as Color[]).forEach((color) => {
       const b = el('button', 'uno-color-choice') as HTMLButtonElement;
@@ -459,9 +459,9 @@ export class UnoUI {
     const title = el('div', 'uno-modal-title');
     const winner = this.state.winner != null ? this.state.players[this.state.winner] : null;
     const won = winner?.id === 0;
-    title.textContent = won ? '🎉 你贏了！' : `${winner?.name} 獲勝`;
+    title.textContent = won ? '🎉 あなたの勝ち！' : `${winner?.name} の勝ち`;
     const btn = el('button', 'uno-btn') as HTMLButtonElement;
-    btn.textContent = '再來一局';
+    btn.textContent = 'もう一度プレイ';
     btn.addEventListener('click', () => this.newGame());
     box.append(title, btn);
     bar.appendChild(box);
