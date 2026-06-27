@@ -78,8 +78,13 @@ export class UnoUI {
     root.classList.add('uno-app');
 
     const settings = el('div', 'uno-settings');
+    // 立体的なカードテーブル（対戦相手と中央の場を奥に傾けて配置）
+    const table = el('div', 'uno-table');
+    const tableInner = el('div', 'uno-table-inner');
     const opponents = el('div', 'uno-opponents');
     const center = el('div', 'uno-center');
+    tableInner.append(opponents, center);
+    table.appendChild(tableInner);
     const status = el('div', 'uno-status');
     const handWrap = el('div', 'uno-hand-wrap');
     const hand = el('div', 'uno-hand');
@@ -92,7 +97,7 @@ export class UnoUI {
     newGameBtn.type = 'button';
     controls.append(unoBtn, newGameBtn);
 
-    root.append(settings, opponents, center, status, handWrap, controls);
+    root.append(settings, table, status, handWrap, controls);
 
     unoBtn.addEventListener('click', () => this.onUnoClick());
     newGameBtn.addEventListener('click', () => this.newGame());
@@ -245,7 +250,7 @@ export class UnoUI {
       const playable = isMyTurn && canPlay(this.state, card);
       if (playable) {
         elc.classList.add('uno-playable');
-        elc.addEventListener('click', () => this.onPlayCard(card));
+        elc.addEventListener('click', () => this.onPlayCard(card, elc));
       } else if (isMyTurn) {
         elc.classList.add('uno-disabled');
       }
@@ -327,22 +332,29 @@ export class UnoUI {
   }
 
   // ---- 人類互動 ----
-  private onPlayCard(card: Card) {
+  private onPlayCard(card: Card, sourceEl?: HTMLElement) {
     if (this.busy || this.state.currentPlayer !== 0 || this.state.status !== 'playing') return;
     if (!canPlay(this.state, card)) return;
-    if (card.color === 'wild') this.openColorPicker((color) => this.commitPlay(0, card, color));
-    else this.commitPlay(0, card);
+    const from = sourceEl ? sourceEl.getBoundingClientRect() : undefined;
+    if (card.color === 'wild') this.openColorPicker((color) => this.commitPlay(0, card, color, from));
+    else this.commitPlay(0, card, undefined, from);
   }
 
-  private commitPlay(playerIndex: number, card: Card, color?: Color) {
+  private commitPlay(playerIndex: number, card: Card, color?: Color, from?: DOMRect) {
     const res = playCard(this.state, playerIndex, card.id, color);
     if (!res.ok) {
-      if (res.needColor) this.openColorPicker((c) => this.commitPlay(playerIndex, card, c));
+      if (res.needColor) this.openColorPicker((c) => this.commitPlay(playerIndex, card, c, from));
       return;
     }
     playPlace();
     if (playerIndex === 0 && this.state.players[0].hand.length === 1) this.openUnoWindow();
-    this.afterHumanAction();
+    this.render();
+    if (from) this.flyCard(from, card, card.color === 'wild' ? this.state.activeColor : (card.color as Color));
+    if (this.state.status === 'roundOver') {
+      this.showWinner();
+      return;
+    }
+    this.maybeRunAi();
   }
 
   private onDrawClick() {
@@ -379,11 +391,12 @@ export class UnoUI {
     bar.appendChild(box);
     this.refs.app.appendChild(bar);
 
+    const drawRect = this.refs.center.querySelector('.uno-draw-pile')?.getBoundingClientRect();
     const close = () => bar.remove();
     yes.addEventListener('click', () => {
       close();
-      if (card.color === 'wild') this.openColorPicker((c) => this.commitPlay(0, card, c));
-      else this.commitPlay(0, card);
+      if (card.color === 'wild') this.openColorPicker((c) => this.commitPlay(0, card, c, drawRect));
+      else this.commitPlay(0, card, undefined, drawRect);
     });
     no.addEventListener('click', () => {
       close();
@@ -450,10 +463,15 @@ export class UnoUI {
       this.unoWindowOpen = false;
     }
 
+    const meBox = this.refs.opponents.children[me - 1] as HTMLElement | undefined;
+    const fromRect = meBox?.getBoundingClientRect();
+    let didPlay = false;
+
     const action = decideAi(this.state, this.difficulty);
     if (action.type === 'play' && action.cardId) {
       playCard(this.state, me, action.cardId, action.chosenColor);
       playPlace();
+      didPlay = true;
       if (this.state.players[me].hand.length === 1) {
         declareUno(this.state, me);
         speakUno();
@@ -467,6 +485,7 @@ export class UnoUI {
           const color = card.color === 'wild' ? aiChooseColorForDrawn(this.state) : undefined;
           playCard(this.state, me, card.id, color);
           playPlace();
+          didPlay = true;
           if (this.state.players[me].hand.length === 1) {
             declareUno(this.state, me);
             speakUno();
@@ -478,6 +497,7 @@ export class UnoUI {
     }
 
     this.render();
+    if (didPlay && fromRect) this.flyCard(fromRect, topCard(this.state), this.state.activeColor);
     if (this.state.status === 'roundOver') {
       this.busy = false;
       this.render();
@@ -532,6 +552,42 @@ export class UnoUI {
     box.append(title, btn);
     bar.appendChild(box);
     this.refs.app.appendChild(bar);
+  }
+
+  // 出牌の移動軌跡：始点(手札/相手/山札)から棄牌堆へカードを飛ばす
+  private flyCard(fromRect: DOMRect, card: Card, activeColor: Color | null) {
+    const target = this.refs.center.querySelector('.uno-discard-pile .uno-card') as HTMLElement | null;
+    if (!target || !fromRect) return;
+    const toRect = target.getBoundingClientRect();
+    const w = toRect.width;
+    const h = toRect.height;
+    const startLeft = fromRect.left + fromRect.width / 2 - w / 2;
+    const startTop = fromRect.top + fromRect.height / 2 - h / 2;
+
+    const clone = this.cardFace(card, activeColor);
+    clone.classList.add('uno-flying');
+    clone.style.left = `${startLeft}px`;
+    clone.style.top = `${startTop}px`;
+    clone.style.width = `${w}px`;
+    clone.style.height = `${h}px`;
+    document.body.appendChild(clone);
+
+    target.style.visibility = 'hidden';
+    const dx = toRect.left - startLeft;
+    const dy = toRect.top - startTop;
+    requestAnimationFrame(() => {
+      clone.style.transform = `translate(${dx}px, ${dy}px) rotate(0deg)`;
+    });
+
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      clone.remove();
+      if (target) target.style.visibility = 'visible';
+    };
+    clone.addEventListener('transitionend', finish, { once: true });
+    window.setTimeout(finish, 600);
   }
 
   private clearOverlay() {
