@@ -49,6 +49,7 @@ export interface GameState {
   status: GameStatus;
   winner: number | null;
   log: LogEvent[];
+  stacking: boolean; // +2/+4 の重ね出しを許可するか（家庭規則=true / 公式=false）
 }
 
 export const COLORS: Color[] = ['red', 'yellow', 'green', 'blue'];
@@ -90,10 +91,12 @@ export function shuffle<T>(arr: T[]): T[] {
 
 export interface NewGameOptions {
   startingHand?: number;
+  stacking?: boolean; // 既定: 家庭規則（重ね出し可）
 }
 
 export function createGame(opts: NewGameOptions = {}): GameState {
   const handSize = opts.startingHand ?? 7;
+  const stacking = opts.stacking ?? true;
   const drawPile = shuffle(buildDeck());
   const players: Player[] = [0, 1, 2, 3].map((i) => ({
     id: i,
@@ -125,6 +128,7 @@ export function createGame(opts: NewGameOptions = {}): GameState {
     status: 'playing',
     winner: null,
     log: [],
+    stacking,
   };
 
   applyStartCardEffect(state, first);
@@ -170,6 +174,7 @@ export function isPlayable(card: Card, activeColor: Color, top: Card): boolean {
 export function canPlay(state: GameState, card: Card): boolean {
   const top = topCard(state);
   if (state.pendingDraw > 0) {
+    if (!state.stacking) return false; // 公式規則：重ね出し不可、引くしかない
     if (state.pendingDrawKind === 'draw2') return card.kind === 'draw2';
     if (state.pendingDrawKind === 'wild4') return card.kind === 'wild4';
     return false;
@@ -217,6 +222,46 @@ export function playCard(state: GameState, playerIndex: number, cardId: string, 
   }
 
   applyCardEffect(state, card);
+  return { ok: true };
+}
+
+// 家庭規則：同じ数字の数字カードを一度に複数出す。
+// cardIds[0] が場に合法であること、全て同じ value の number カードであることが条件。
+// 最後のカードの色が有効色になる。動作牌・変色牌は対象外。
+export function playCards(state: GameState, playerIndex: number, cardIds: string[]): PlayResult {
+  if (state.status !== 'playing') return { ok: false, reason: 'over' };
+  if (playerIndex !== state.currentPlayer) return { ok: false, reason: 'not_your_turn' };
+  if (cardIds.length === 0) return { ok: false, reason: 'empty' };
+  if (cardIds.length === 1) return playCard(state, playerIndex, cardIds[0]);
+
+  const player = state.players[playerIndex];
+  const cards = cardIds.map((id) => player.hand.find((c) => c.id === id));
+  if (cards.some((c) => !c)) return { ok: false, reason: 'no_such_card' };
+  const list = cards as Card[];
+
+  if (!list.every((c) => c.kind === 'number')) return { ok: false, reason: 'illegal' };
+  if (new Set(list.map((c) => c.value)).size !== 1) return { ok: false, reason: 'illegal' };
+  if (!canPlay(state, list[0])) return { ok: false, reason: 'illegal' };
+
+  for (const c of list) {
+    const idx = player.hand.findIndex((h) => h.id === c.id);
+    player.hand.splice(idx, 1);
+    state.discardPile.push(c);
+  }
+  if (player.hand.length !== 1) player.saidUno = false;
+
+  const last = list[list.length - 1];
+  state.activeColor = last.color as Color;
+  log(state, { key: 'log_played_multi', pi: playerIndex, n: list.length, card: last });
+
+  if (player.hand.length === 0) {
+    state.status = 'roundOver';
+    state.winner = playerIndex;
+    log(state, { key: 'log_win', pi: playerIndex });
+    return { ok: true };
+  }
+
+  advance(state, 1); // 数字カードのみなので効果なし、次の手番へ
   return { ok: true };
 }
 
