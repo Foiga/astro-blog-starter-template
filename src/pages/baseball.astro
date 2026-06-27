@@ -1,0 +1,203 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE } from '../consts';
+---
+
+<!doctype html>
+<html lang="ja">
+	<head>
+		<BaseHead title={`パワプロ風 ホームランダービー | ${SITE_TITLE}`} description="ブラウザとスマホで遊べるパワプロ風のホームランダービー。ミートカーソルとタイミングでホームランを狙え。" />
+	</head>
+	<body>
+		<Header />
+		<main class="bb-main">
+			<h1 class="bb-heading">ホームランダービー</h1>
+			<p class="bb-sub">画面をなぞってミートカーソルを移動 → 球が来たら「スイング」をタイミングよく！</p>
+
+			<div class="bb-hud">
+				<div class="bb-stat"><span class="bb-stat-label">球数</span><span id="bb-pitch">1 / 10</span></div>
+				<div class="bb-stat"><span class="bb-stat-label">HR</span><span id="bb-hr">0</span></div>
+				<div class="bb-stat"><span class="bb-stat-label">最長</span><span id="bb-long">0 m</span></div>
+			</div>
+
+			<div class="bb-stage">
+				<canvas id="bb-canvas"></canvas>
+				<div id="bb-overlay" class="bb-overlay">
+					<div class="bb-modal">
+						<div id="bb-overlay-title" class="bb-modal-title">結果</div>
+						<div id="bb-overlay-stats" class="bb-modal-stats"></div>
+						<button id="bb-replay" class="bb-btn" type="button">もう一度</button>
+					</div>
+				</div>
+			</div>
+
+			<p id="bb-msg" class="bb-msg">構えて…</p>
+			<div class="bb-controls">
+				<button id="bb-swing" class="bb-btn bb-swing" type="button">スイング</button>
+			</div>
+		</main>
+		<Footer />
+
+		<script>
+			import { mountBaseball } from '../scripts/baseball/game';
+			mountBaseball();
+		</script>
+
+		<style is:global>
+			.bb-main {
+				max-width: 720px;
+				margin: 0 auto;
+				padding: 1.25rem 1rem 3rem;
+			}
+			.bb-heading {
+				text-align: center;
+				font-size: 2.2rem;
+				letter-spacing: 0.08em;
+				margin: 0.25rem 0;
+				color: #c9a84c;
+			}
+			.bb-sub {
+				text-align: center;
+				color: rgba(220, 220, 220, 0.7);
+				font-size: 0.85rem;
+				margin: 0 0 1rem;
+			}
+			.bb-hud {
+				display: flex;
+				justify-content: center;
+				gap: 0.75rem;
+				margin-bottom: 0.75rem;
+			}
+			.bb-stat {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				min-width: 84px;
+				padding: 0.4rem 0.6rem;
+				background: rgba(255, 255, 255, 0.05);
+				border: 1px solid rgba(201, 168, 76, 0.3);
+				border-radius: 10px;
+			}
+			.bb-stat-label {
+				font-size: 0.7rem;
+				color: rgba(220, 220, 220, 0.6);
+				letter-spacing: 0.1em;
+			}
+			.bb-stat span:last-child {
+				font-size: 1.3rem;
+				font-weight: 700;
+				color: #fff;
+			}
+			#bb-hr {
+				color: #ffe14d !important;
+			}
+
+			.bb-stage {
+				position: relative;
+				width: 100%;
+				aspect-ratio: 3 / 4;
+				max-height: 70vh;
+				margin: 0 auto;
+				border-radius: 14px;
+				overflow: hidden;
+				border: 1px solid rgba(201, 168, 76, 0.3);
+				box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+			}
+			#bb-canvas {
+				width: 100%;
+				height: 100%;
+				display: block;
+				touch-action: none; /* ドラッグでスクロールしない */
+				cursor: crosshair;
+			}
+
+			.bb-overlay {
+				position: absolute;
+				inset: 0;
+				background: rgba(0, 0, 0, 0.78);
+				display: none;
+				align-items: center;
+				justify-content: center;
+			}
+			.bb-overlay.bb-show {
+				display: flex;
+			}
+			.bb-modal {
+				text-align: center;
+				background: #1a1a1a;
+				border: 1px solid rgba(201, 168, 76, 0.4);
+				border-radius: 16px;
+				padding: 1.5rem 2rem;
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
+				align-items: center;
+			}
+			.bb-modal-title {
+				font-size: 1.5rem;
+				font-weight: 700;
+				color: #ffe14d;
+			}
+			.bb-modal-stats {
+				color: #eee;
+				line-height: 1.7;
+			}
+
+			.bb-msg {
+				text-align: center;
+				min-height: 1.3rem;
+				margin: 0.6rem 0;
+				color: #c9a84c;
+				font-size: 0.9rem;
+			}
+			.bb-controls {
+				display: flex;
+				justify-content: center;
+			}
+			.bb-btn {
+				min-height: 44px;
+				padding: 0 1.5rem;
+				border-radius: 999px;
+				border: 2px solid #c9a84c;
+				background: #c9a84c;
+				color: #0d0d0d;
+				font-weight: 700;
+				font-size: 1rem;
+				letter-spacing: 0.05em;
+				cursor: pointer;
+				transition: filter 0.15s ease, transform 0.05s ease;
+			}
+			.bb-btn:hover:not(:disabled) {
+				filter: brightness(1.1);
+			}
+			.bb-btn:active:not(:disabled) {
+				transform: scale(0.96);
+			}
+			.bb-btn:disabled {
+				opacity: 0.4;
+				cursor: not-allowed;
+			}
+			.bb-swing {
+				width: 70%;
+				max-width: 320px;
+				min-height: 64px;
+				font-size: 1.35rem;
+				background: #D72600;
+				border-color: #D72600;
+				color: #fff;
+			}
+
+			@media (max-width: 600px) {
+				.bb-heading {
+					font-size: 1.8rem;
+				}
+				.bb-stage {
+					aspect-ratio: 3 / 4;
+					max-height: 64vh;
+				}
+			}
+		</style>
+	</body>
+</html>
