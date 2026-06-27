@@ -68,9 +68,13 @@ export function speakUno() {
   try {
     const synth = window.speechSynthesis;
     if (!synth) return;
-    const u = new SpeechSynthesisUtterance('U-N-O!');
-    u.rate = 0.95;
-    u.pitch = 1.1;
+    // 「うの」と読み上げる（日本語の発音）
+    const u = new SpeechSynthesisUtterance('ウノ');
+    u.lang = 'ja-JP';
+    const jaVoice = synth.getVoices().find((v) => v.lang && v.lang.toLowerCase().startsWith('ja'));
+    if (jaVoice) u.voice = jaVoice;
+    u.rate = 1.0;
+    u.pitch = 1.15;
     u.volume = 1;
     synth.cancel();
     synth.speak(u);
