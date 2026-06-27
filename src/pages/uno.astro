@@ -14,7 +14,7 @@ import { SITE_TITLE } from '../consts';
 		<Header />
 		<main class="uno-main">
 			<h1 class="uno-heading">UNO</h1>
-			<p class="uno-sub">出せるカードをタップして出す、山札をタップして引く。残り1枚になったら UNO ボタンを忘れずに！</p>
+			<p id="uno-sub" class="uno-sub">出せるカードをタップして出す、山札をタップして引く。残り1枚になったら UNO ボタンを忘れずに！</p>
 			<div id="uno-app"></div>
 		</main>
 		<Footer />
@@ -56,6 +56,48 @@ import { SITE_TITLE } from '../consts';
 				padding: 1rem;
 				min-height: 70vh;
 				overflow: hidden;
+			}
+
+			/* 設定バー（言語・難易度） */
+			.uno-settings {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: center;
+				gap: 1rem 1.5rem;
+			}
+			.uno-seg-group {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+			}
+			.uno-seg-label {
+				font-size: 0.72rem;
+				letter-spacing: 0.08em;
+				color: rgba(220, 220, 220, 0.55);
+			}
+			.uno-seg-row {
+				display: inline-flex;
+				border: 1px solid rgba(201, 168, 76, 0.35);
+				border-radius: 999px;
+				overflow: hidden;
+			}
+			.uno-seg {
+				min-height: 34px;
+				padding: 0 0.8rem;
+				background: transparent;
+				color: rgba(220, 220, 220, 0.8);
+				border: none;
+				font-size: 0.82rem;
+				font-weight: 600;
+				cursor: pointer;
+				transition: background 0.15s ease, color 0.15s ease;
+			}
+			.uno-seg + .uno-seg {
+				border-left: 1px solid rgba(201, 168, 76, 0.25);
+			}
+			.uno-seg-active {
+				background: #c9a84c;
+				color: #0d0d0d;
 			}
 
 			/* 對手列 */
