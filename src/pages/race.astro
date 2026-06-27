@@ -1,0 +1,232 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE } from '../consts';
+---
+
+<!doctype html>
+<html lang="ja">
+	<head>
+		<BaseHead title={`マリオカート風レース | ${SITE_TITLE}`} description="ブラウザとスマホで遊べる擬似3Dのカートレース。CPUと3周して順位を競おう。" />
+	</head>
+	<body>
+		<Header />
+		<main class="rc-main">
+			<h1 class="rc-heading">カートレース</h1>
+			<p class="rc-sub">◀ ▶ で曲がる・カーブはドリフト！CPUと3周して1位を狙え。</p>
+
+			<div class="rc-hud">
+				<div class="rc-stat"><span class="rc-stat-label">周回</span><span id="rc-lap">1 / 3</span></div>
+				<div class="rc-stat"><span class="rc-stat-label">順位</span><span id="rc-rank">1位</span></div>
+				<div class="rc-stat"><span class="rc-stat-label">速度</span><span id="rc-speed">0 km/h</span></div>
+			</div>
+
+			<div class="rc-stage">
+				<canvas id="rc-canvas"></canvas>
+				<div id="rc-overlay" class="rc-overlay">
+					<div class="rc-modal">
+						<div id="rc-overlay-title" class="rc-modal-title">結果</div>
+						<div id="rc-overlay-stats" class="rc-modal-stats"></div>
+						<button id="rc-replay" class="rc-btn" type="button">もう一度</button>
+					</div>
+				</div>
+			</div>
+
+			<div class="rc-controls">
+				<button id="rc-left" class="rc-pad" type="button" aria-label="左">◀</button>
+				<div class="rc-controls-right">
+					<button id="rc-brake" class="rc-pad rc-brake" type="button" aria-label="ブレーキ">ブレーキ</button>
+					<button id="rc-drift" class="rc-pad rc-drift" type="button" aria-label="ドリフト">ドリフト</button>
+				</div>
+				<button id="rc-right" class="rc-pad" type="button" aria-label="右">▶</button>
+			</div>
+			<p class="rc-hint">アクセルは自動。PCは ←→ で操舵、スペースでドリフト、↓でブレーキ。</p>
+		</main>
+		<Footer />
+
+		<script>
+			import { mountRace } from '../scripts/race/game';
+			mountRace();
+		</script>
+
+		<style is:global>
+			.rc-main {
+				max-width: 760px;
+				margin: 0 auto;
+				padding: 1.25rem 1rem 3rem;
+			}
+			.rc-heading {
+				text-align: center;
+				font-size: 2.2rem;
+				letter-spacing: 0.08em;
+				margin: 0.25rem 0;
+				color: #c9a84c;
+			}
+			.rc-sub {
+				text-align: center;
+				color: rgba(220, 220, 220, 0.7);
+				font-size: 0.85rem;
+				margin: 0 0 1rem;
+			}
+			.rc-hud {
+				display: flex;
+				justify-content: center;
+				gap: 0.75rem;
+				margin-bottom: 0.75rem;
+			}
+			.rc-stat {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				min-width: 92px;
+				padding: 0.4rem 0.6rem;
+				background: rgba(255, 255, 255, 0.05);
+				border: 1px solid rgba(201, 168, 76, 0.3);
+				border-radius: 10px;
+			}
+			.rc-stat-label {
+				font-size: 0.7rem;
+				color: rgba(220, 220, 220, 0.6);
+				letter-spacing: 0.1em;
+			}
+			.rc-stat span:last-child {
+				font-size: 1.25rem;
+				font-weight: 700;
+				color: #fff;
+			}
+			#rc-rank {
+				color: #ffd23f !important;
+			}
+
+			.rc-stage {
+				position: relative;
+				width: 100%;
+				aspect-ratio: 4 / 3;
+				max-height: 56vh;
+				margin: 0 auto;
+				border-radius: 14px;
+				overflow: hidden;
+				border: 1px solid rgba(201, 168, 76, 0.3);
+				box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+			}
+			#rc-canvas {
+				width: 100%;
+				height: 100%;
+				display: block;
+				touch-action: none;
+			}
+
+			.rc-overlay {
+				position: absolute;
+				inset: 0;
+				background: rgba(0, 0, 0, 0.78);
+				display: none;
+				align-items: center;
+				justify-content: center;
+			}
+			.rc-overlay.rc-show {
+				display: flex;
+			}
+			.rc-modal {
+				text-align: center;
+				background: #1a1a1a;
+				border: 1px solid rgba(201, 168, 76, 0.4);
+				border-radius: 16px;
+				padding: 1.5rem 2rem;
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
+				align-items: center;
+			}
+			.rc-modal-title {
+				font-size: 1.6rem;
+				font-weight: 700;
+				color: #ffd23f;
+			}
+			.rc-modal-stats {
+				color: #eee;
+				line-height: 1.7;
+			}
+
+			.rc-controls {
+				display: flex;
+				justify-content: space-between;
+				align-items: flex-end;
+				gap: 0.75rem;
+				margin-top: 0.9rem;
+			}
+			.rc-controls-right {
+				display: flex;
+				gap: 0.5rem;
+			}
+			.rc-pad {
+				min-height: 64px;
+				min-width: 72px;
+				padding: 0 1rem;
+				border-radius: 14px;
+				border: 2px solid #c9a84c;
+				background: rgba(201, 168, 76, 0.15);
+				color: #fff;
+				font-weight: 700;
+				font-size: 1.5rem;
+				cursor: pointer;
+				user-select: none;
+				touch-action: none;
+				transition: background 0.1s ease, transform 0.05s ease;
+			}
+			.rc-pad:active {
+				background: rgba(201, 168, 76, 0.45);
+				transform: scale(0.96);
+			}
+			.rc-left,
+			#rc-left,
+			#rc-right {
+				width: 84px;
+				font-size: 1.8rem;
+			}
+			.rc-drift {
+				background: rgba(63, 224, 74, 0.18);
+				border-color: #3fe04a;
+				font-size: 1rem;
+			}
+			.rc-drift:active {
+				background: rgba(63, 224, 74, 0.5);
+			}
+			.rc-brake {
+				background: rgba(215, 38, 0, 0.18);
+				border-color: #d72600;
+				font-size: 1rem;
+			}
+			.rc-brake:active {
+				background: rgba(215, 38, 0, 0.5);
+			}
+			.rc-btn {
+				min-height: 44px;
+				padding: 0 1.5rem;
+				border-radius: 999px;
+				border: 2px solid #c9a84c;
+				background: #c9a84c;
+				color: #0d0d0d;
+				font-weight: 700;
+				font-size: 1rem;
+				cursor: pointer;
+			}
+			.rc-hint {
+				text-align: center;
+				color: rgba(220, 220, 220, 0.5);
+				font-size: 0.75rem;
+				margin: 0.6rem 0 0;
+			}
+
+			@media (max-width: 600px) {
+				.rc-heading {
+					font-size: 1.8rem;
+				}
+				.rc-stage {
+					max-height: 48vh;
+				}
+			}
+		</style>
+	</body>
+</html>
